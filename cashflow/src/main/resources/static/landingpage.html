@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CashFlow</title>
+  <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        line-height: 1.6;
+        overflow-x: hidden;
+    }
+
+    /* Header */
+    header {
+        background: #fff;
+        padding: 1rem 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1000;
+    }
+
+    nav {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 2rem;
+        position: relative;
+    }
+
+    .logo {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4169E1;
+        z-index: 1001;
+    }
+
+    .logo::before {
+        content: '</> ';
+        color: #4169E1;
+    }
+
+    /* Hamburger Menu */
+    .hamburger {
+        display: none;
+        flex-direction: column;
+        cursor: pointer;
+        z-index: 1001;
+        padding: 0.5rem;
+    }
+
+    .hamburger span {
+        width: 25px;
+        height: 3px;
+        background: #4169E1;
+        margin: 3px 0;
+        transition: 0.3s;
+        border-radius: 3px;
+    }
+
+    .hamburger.active span:nth-child(1) {
+        transform: rotate(-45deg) translate(-5px, 6px);
+    }
+
+    .hamburger.active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger.active span:nth-child(3) {
+        transform: rotate(45deg) translate(-5px, -6px);
+    }
+
+    body.dark-theme .hamburger span {
+        background: #6b9bff;
+    }
+
+    nav ul {
+        display: flex;
+        list-style: none;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    nav a {
+        text-decoration: none;
+        color: #666;
+        transition: color 0.3s;
+        font-weight: 500;
+    }
+
+    nav a:hover {
+        color: #4169E1;
+    }
+
+    .nav-buttons {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .login-btn {
+        padding: 0.5rem 1.5rem;
+        background: transparent;
+        color: #4169E1;
+        border: 2px solid #4169E1;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .login-btn:hover {
+        background: #4169E1;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .signup-btn {
+        padding: 0.5rem 1.5rem;
+        background: #4169E1;
+        color: white;
+        border: 2px solid #4169E1;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s;
+        box-shadow: 0 2px 10px rgba(65, 105, 225, 0.3);
+    }
+
+    .signup-btn:hover {
+        background: #3557c7;
+        border-color: #3557c7;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(65, 105, 225, 0.4);
+    }
+
+    /* Theme Toggle Switch */
+    .theme-toggle-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .theme-switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 30px;
+    }
+
+    .theme-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 30px;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "🌙";
+        height: 24px;
+        width: 24px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+        background-color: #4169E1;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(30px);
+        content: "☀️";
+    }
+
+    .slider:hover {
+        box-shadow: 0 0 8px rgba(65, 105, 225, 0.4);
+    }
+
+    input:checked + .slider:hover {
+        box-shadow: 0 0 8px rgba(65, 105, 225, 0.6);
+    }
+
+    /* Dark Theme Styles */
+    body.dark-theme {
+        background: #1a1a1a;
+        color: #e0e0e0;
+    }
+
+    body.dark-theme header {
+        background: #2d2d2d !important;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    body.dark-theme nav a {
+        color: #b0b0b0;
+    }
+
+    body.dark-theme nav a:hover {
+        color: #6b9bff;
+    }
+
+    body.dark-theme .logo {
+        color: #6b9bff;
+    }
+
+    body.dark-theme .hero {
+        background: linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 100%);
+    }
+
+    body.dark-theme .hero-text h1 {
+        color: #6b9bff;
+    }
+
+    body.dark-theme .hero-text h2,
+    body.dark-theme h2,
+    body.dark-theme h3 {
+        color: #e0e0e0;
+    }
+
+    body.dark-theme .hero-text p,
+    body.dark-theme p {
+        color: #b0b0b0;
+    }
+
+    body.dark-theme .btn {
+        background: #6b9bff;
+        color: #fff;
+    }
+
+    body.dark-theme .btn:hover {
+        background: #5a8aef;
+    }
+
+    body.dark-theme .partners {
+        background: #2d2d2d;
+    }
+
+    body.dark-theme .partner-logo {
+        color: #666;
+    }
+
+    body.dark-theme .about {
+        background: #1a1a1a;
+    }
+
+    body.dark-theme .accordion-item {
+        background: #2d2d2d;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    body.dark-theme .accordion-header:hover {
+        background: #3a3a3a;
+    }
+
+    body.dark-theme .services {
+        background: #2d2d2d;
+    }
+
+    body.dark-theme .services-subtitle {
+        color: #b0b0b0;
+    }
+
+    body.dark-theme .service-card {
+        background: #1a1a1a;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    body.dark-theme .service-card:hover {
+        box-shadow: 0 10px 30px rgba(107, 155, 255, 0.2);
+    }
+
+    body.dark-theme .service-card p {
+        color: #b0b0b0;
+    }
+
+    body.dark-theme .stats {
+        background: #1a1a1a;
+    }
+
+    body.dark-theme .stat-label {
+        color: #b0b0b0;
+    }
+
+    body.dark-theme .cta {
+        background: #2d2d2d;
+    }
+
+    body.dark-theme footer {
+        background: #1a1a1a;
+        border-top: 1px solid #3a3a3a;
+    }
+
+    body.dark-theme .footer-section a {
+        color: #b0b0b0;
+    }
+
+    body.dark-theme .footer-section a:hover {
+        color: #6b9bff;
+    }
+
+    body.dark-theme .footer-bottom {
+        border-top: 1px solid #3a3a3a;
+        color: #888;
+    }
+
+    body.dark-theme .slider {
+        background-color: #555;
+    }
+
+    body.dark-theme input:checked + .slider {
+        background-color: #ffd700;
+    }
+
+    body.dark-theme .login-btn {
+        color: #6b9bff;
+        border-color: #6b9bff;
+    }
+
+    body.dark-theme .login-btn:hover {
+        background: #6b9bff;
+        color: #1a1a1a;
+    }
+
+    body.dark-theme .signup-btn {
+        background: #6b9bff;
+        border-color: #6b9bff;
+    }
+
+    body.dark-theme .signup-btn:hover {
+        background: #5a8aef;
+        border-color: #5a8aef;
+    }
+
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf3 100%);
+        padding: 120px 2rem 80px;
+        margin-top: 60px;
+    }
+
+    .hero-content {
+         display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+    }
+
+    .hero-text h1 {
+        font-size: 2.5rem;
+        color: #4169E1;
+        margin-bottom: 1rem;
+        animation: fadeInLeft 0.8s ease-out;
+    }
+
+    .hero-text h2 {
+        font-size: 2rem;
+        color: #333;
+        margin-bottom: 1rem;
+        animation: fadeInLeft 0.8s ease-out 0.2s both;
+    }
+
+    .hero-text p {
+        color: #666;
+        margin-bottom: 2rem;
+        animation: fadeInLeft 0.8s ease-out 0.4s both;
+    }
+
+    .hero-text .btn {
+        animation: fadeInLeft 0.8s ease-out 0.6s both;
+    }
+
+    .hero-image {
+        animation: fadeInRight 1s ease-out 0.3s both;
+    }
+
+    .btn {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background: #4169E1;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(65,105,225,0.3);
+    }
+
+    .hero-image {
+        text-align: center;
+    }
+
+    .hero-image img {
+        max-width: 100%;
+        height: auto;
+        animation: float 3s ease-in-out infinite;
+        border-radius: 20px;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-on-scroll {
+        opacity: 0;
+    }
+
+    .animate-on-scroll.animated {
+        animation-duration: 0.8s;
+        animation-fill-mode: both;
+    }
+
+    .fade-in-up {
+        animation-name: fadeInUp;
+    }
+
+    .fade-in-left {
+        animation-name: fadeInLeft;
+    }
+
+    .fade-in-right {
+        animation-name: fadeInRight;
+    }
+
+    .scale-in {
+        animation-name: scaleIn;
+    }
+
+    .slide-down {
+        animation-name: slideDown;
+    }
+
+    /* Partners */
+    .partners {
+        padding: 3rem 2rem;
+        background: white;
+        text-align: center;
+    }
+
+    .partners-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 2rem;
+        opacity: 0.5;
+    }
+
+    .partner-logo {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #999;
+    }
+
+    /* About Section */
+    .about {
+        padding: 80px 2rem;
+        background: #f9f9f9;
+    }
+
+    .about-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .about-image img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .about-illustration {
+        width: 100%;
+        height: 400px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+    }
+
+    .graph-container {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80%;
+        height: 60%;
+        display: flex;
+        align-items: flex-end;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .bar {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px 10px 0 0;
+        animation: growBar 2s ease-out infinite;
+        box-shadow: 0 -5px 20px rgba(255, 255, 255, 0.3);
+    }
+
+    .bar:nth-child(1) {
+        height: 40%;
+        animation-delay: 0s;
+    }
+
+    .bar:nth-child(2) {
+        height: 70%;
+        animation-delay: 0.2s;
+    }
+
+    .bar:nth-child(3) {
+        height: 50%;
+        animation-delay: 0.4s;
+    }
+
+    .bar:nth-child(4) {
+        height: 85%;
+        animation-delay: 0.6s;
+    }
+
+    .bar:nth-child(5) {
+        height: 65%;
+        animation-delay: 0.8s;
+    }
+
+    @keyframes growBar {
+        0%, 100% { transform: scaleY(0.9); opacity: 0.7; }
+        50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    .dots-decoration {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        display: inline-block;
+        margin: 0 5px;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .dot:nth-child(2) {
+        animation-delay: 0.3s;
+    }
+
+    .dot:nth-child(3) {
+        animation-delay: 0.6s;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.3); opacity: 1; }
+    }
+
+    .about-text h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .about-text p {
+        color: #666;
+        margin-bottom: 1.5rem;
+    }
+
+    .accordion {
+        margin-top: 2rem;
+    }
+
+    .accordion-item {
+        background: white;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .accordion-header {
+        padding: 1rem;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+
+    .accordion-header:hover {
+        background: #f5f5f5;
+    }
+
+    .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+        padding: 0 1rem;
+    }
+
+    .accordion-content.active {
+        max-height: 200px;
+        padding: 1rem;
+    }
+
+    /* Services */
+    .services {
+        padding: 80px 2rem;
+        background: white;
+        text-align: center;
+    }
+
+    .services h2 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .services-subtitle {
+        color: #666;
+        margin-bottom: 3rem;
+    }
+
+    .services-grid {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+    }
+
+    .service-card {
+        background: #f9f9f9;
+        padding: 2rem;
+        border-radius: 10px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        opacity: 0;
+    }
+
+    .service-card.animated {
+        animation: scaleIn 0.6s ease-out both;
+    }
+
+    .service-card:nth-child(1).animated { animation-delay: 0.1s; }
+    .service-card:nth-child(2).animated { animation-delay: 0.2s; }
+    .service-card:nth-child(3).animated { animation-delay: 0.3s; }
+    .service-card:nth-child(4).animated { animation-delay: 0.4s; }
+
+    .service-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .service-icon {
+        display: inline-block;
+        transition: transform 0.3s ease;
+    }
+
+    .service-card:hover .service-icon {
+        transform: scale(1.2) rotate(5deg);
+    }
+
+    .service-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #4169E1;
+    }
+
+    .service-card h3 {
+        margin-bottom: 1rem;
+    }
+
+    .service-card p {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* Stats */
+    .stats {
+        padding: 80px 2rem;
+        background: #f9f9f9;
+    }
+
+    .stats-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+    }
+
+    .stats h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: #4169E1;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        display: inline-block;
+    }
+
+    .stat-item.animated .stat-number {
+        animation: countUp 2s ease-out;
+    }
+
+    @keyframes countUp {
+        from {
+            opacity: 0;
+            transform: scale(0.5);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .stat-item {
+        opacity: 0;
+    }
+
+    .stat-item.animated {
+        animation: fadeInUp 0.6s ease-out both;
+    }
+
+    .stat-item:nth-child(1).animated { animation-delay: 0.1s; }
+    .stat-item:nth-child(2).animated { animation-delay: 0.2s; }
+    .stat-item:nth-child(3).animated { animation-delay: 0.3s; }
+    .stat-item:nth-child(4).animated { animation-delay: 0.4s; }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .stats-image img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .stats-illustration {
+        width: 100%;
+        height: 400px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(240, 147, 251, 0.3);
+    }
+
+    .rocket {
+        position: absolute;
+        width: 80px;
+        height: 120px;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: rocketLaunch 3s ease-in-out infinite;
+    }
+
+    .rocket-body {
+        width: 50px;
+        height: 80px;
+        background: #fff;
+        margin: 0 auto;
+        border-radius: 25px 25px 0 0;
+        position: relative;
+    }
+
+    .rocket-window {
+        width: 20px;
+        height: 20px;
+        background: #4169E1;
+        border-radius: 50%;
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .rocket-fin {
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 30px solid rgba(255, 255, 255, 0.8);
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .rocket-fire {
+        position: absolute;
+        bottom: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 40px;
+        background: linear-gradient(to bottom, #ff6b6b, #feca57, transparent);
+        border-radius: 50%;
+        animation: fireFlicker 0.3s ease-in-out infinite;
+    }
+
+    @keyframes rocketLaunch {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50% { transform: translateX(-50%) translateY(-30px); }
+    }
+
+    @keyframes fireFlicker {
+        0%, 100% { opacity: 0.8; transform: translateX(-50%) scaleY(1); }
+        50% { opacity: 1; transform: translateX(-50%) scaleY(1.2); }
+    }
+
+    .stars {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+
+    .star {
+        position: absolute;
+        width: 3px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        animation: twinkle 2s ease-in-out infinite;
+    }
+
+    .star:nth-child(1) { top: 20%; left: 20%; animation-delay: 0s; }
+    .star:nth-child(2) { top: 40%; left: 80%; animation-delay: 0.5s; }
+    .star:nth-child(3) { top: 60%; left: 15%; animation-delay: 1s; }
+    .star:nth-child(4) { top: 80%; left: 70%; animation-delay: 1.5s; }
+    .star:nth-child(5) { top: 30%; left: 50%; animation-delay: 0.7s; }
+    .star:nth-child(6) { top: 70%; left: 40%; animation-delay: 1.2s; }
+
+    @keyframes twinkle {
+        0%, 100% { opacity: 0.3; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.5); }
+    }
+
+    /* CTA */
+    .cta {
+        padding: 80px 2rem;
+        background: white;
+        text-align: center;
+    }
+
+    .cta h2 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+    .cta p {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+
+    /* Footer */
+    footer {
+        background: #f9f9f9;
+        padding: 3rem 2rem 1rem;
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .footer-section h3 {
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .footer-section ul {
+        list-style: none;
+    }
+
+    .footer-section a {
+        color: #666;
+        text-decoration: none;
+        display: block;
+        margin-bottom: 0.5rem;
+        transition: color 0.3s;
+    }
+
+    .footer-section a:hover {
+        color: #4169E1;
+    }
+
+    .footer-bottom {
+        text-align: center;
+        padding-top: 2rem;
+        border-top: 1px solid #ddd;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hamburger {
+            display: flex;
+        }
+
+        nav ul {
+            position: fixed;
+            left: -100%;
+            top: 70px;
+            flex-direction: column;
+            background-color: #fff;
+            width: 100%;
+            text-align: center;
+            transition: 0.3s;
+            box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+            padding: 2rem 0;
+            gap: 1.5rem;
+            height: calc(100vh - 70px);
+            overflow-y: auto;
+        }
+
+        body.dark-theme nav ul {
+            background-color: #2d2d2d;
+        }
+
+        nav ul.active {
+            left: 0;
+        }
+
+        nav ul li {
+            width: 100%;
+        }
+
+        .nav-buttons {
+            flex-direction: column;
+            width: 100%;
+            padding: 0 2rem;
+        }
+
+        .login-btn, .signup-btn {
+            width: 100%;
+            text-align: center;
+            padding: 0.7rem 1.5rem;
+        }
+
+        .theme-toggle-wrapper {
+            margin-top: 1rem;
+        }
+
+        .about-content,
+        .stats-content {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .hero {
+            padding: 100px 1.5rem 60px;
+            min-height: 60vh;
+        }
+
+        .hero-text h1 {
+            font-size: 2rem;
+        }
+
+        .hero-text h2 {
+            font-size: 1.4rem;
+        }
+
+        .hero-text p {
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            padding: 0.7rem 1.8rem;
+            font-size: 0.95rem;
+        }
+
+        .services-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .about-illustration,
+        .stats-illustration {
+            height: 300px;
+        }
+
+        .footer-content {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .partners-grid {
+            gap: 1.5rem;
+        }
+
+        .partner-logo {
+            font-size: 1.2rem;
+        }
+
+        nav {
+            padding: 0 1rem;
+        }
+
+        .logo {
+            font-size: 1.3rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-text h1 {
+            font-size: 1.8rem;
+        }
+
+        .hero-text h2 {
+            font-size: 1.2rem;
+        }
+
+        .hero-text p {
+            font-size: 0.9rem;
+        }
+
+        .services h2,
+        .stats h2,
+        .about-text h2,
+        .cta h2 {
+            font-size: 1.6rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .service-icon {
+            font-size: 2.5rem;
+        }
+    }
+  </style>
+</head>
+<body>
+<!-- Header -->
+<header>
+  <nav>
+    <div class="logo">CashFlow</div>
+    <div class="hamburger" onclick="toggleMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <ul id="nav-menu">
+      <li><a href="#home" onclick="closeMenu()">Home</a></li>
+      <li><a href="#about" onclick="closeMenu()">About</a></li>
+      <li><a href="#services" onclick="closeMenu()">Services</a></li>
+      <li><a href="#contect" onclick="closeMenu()">Contact</a></li>
+      <li class="nav-buttons">
+        <a href="login.html" class="login-btn" onclick="closeMenu()">Login</a>
+        <a href="signup.html" class="signup-btn" onclick="closeMenu()">Sign Up</a>
+      </li>
+      <li>
+        <div class="theme-toggle-wrapper">
+          <label class="theme-switch">
+            <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero" id="home">
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1>Welcome To CashFlow</h1>
+      <h2>Stay in control of your spending with effortless tracking.</h2>
+      <p>Visualize your expenses, monitor trends, and make confident financial decisions.</p>
+      <a href="login.html" class="btn">Get Started</a>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- About Section -->
+<section class="about" id="about">
+  <div class="about-content">
+    <div class="about-image animate-on-scroll fade-in-left">
+      <div class="about-illustration">
+        <div class="dots-decoration">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+        <div class="graph-container">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </div>
+      </div>
+    </div>
+    <div class="about-text animate-on-scroll fade-in-right">
+      <h2>Read more about our CashFlow</h2>
+      <p>CashFlow makes managing expenses simple, visual, and insightful.
+        With features like pie charts, bar charts, and line graphs, users can clearly understand spending patterns over time.
+        From daily transactions to long-term trends, CashFlow helps users stay informed and in control of their finances.</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(0)">
+            <span>Which Service We Provide?</span>
+            <span>+</span>
+          </div>
+          <div class="accordion-content">
+            <p>We provide smart expense tracking with clear financial insights.
+              Through visual reports and analytics, we help users understand and manage their spending effectively.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(1)">
+            <span>How does CashFlow help me manage my money?</span>
+            <span>+</span>
+          </div>
+          <div class="accordion-content">
+            <p>By tracking your expenses and displaying insights through pie charts, bar graphs, and line charts, CashFlow helps you understand spending patterns and make informed financial decisions.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header" onclick="toggleAccordion(2)">
+            <span>Is CashFlow easy to use?</span>
+            <span>+</span>
+          </div>
+          <div class="accordion-content">
+            <p>Yes. CashFlow is designed with a clean, intuitive interface so users can track expenses effortlessly without technical complexity.</p>
+          </div>
+        </div>
+      </div>
+
+      <a href="#" class="btn" style="margin-top: 2rem;">Get Started</a>
+    </div>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="services" id="services">
+  <h2 class="animate-on-scroll fade-in-up">Our services</h2>
+  <p class="services-subtitle animate-on-scroll fade-in-up">We help you track and analyze your expenses with clarity and precision.<br>
+    Through smart visualization and organized reports, managing finances becomes simple and stress-free.
+
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-icon">💸</div>
+      <h3>Expense Tracking</h3>
+      <p>Easily record and organize your daily expenses to keep a clear view of where your money is going.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">💹</div>
+      <h3>Visual Reports</h3>
+      <p>Understand your spending instantly through interactive pie charts, bar graphs, and line charts.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">💳</div>
+      <h3>Budget Management</h3>
+      <p>Set spending limits and goals to stay disciplined and avoid unnecessary expenses.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🎯</div>
+      <h3>Category-Based Spending</h3>
+      <p>Automatically categorize expenses to see which area consumes most of your budget.</p>
+    </div>
+  </div>
+
+  <a href="#" class="btn" style="margin-top: 3rem;">Explore more</a>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="stats-content">
+    <div class="stats-text animate-on-scroll fade-in-left">
+      <h2>Why Choose CashFlow?</h2>
+      <p>CashFlow is built to make personal finance simple, visual, and stress-free. It combines expense tracking, budgeting, and analytics into one easy-to-use platform.</p>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-icon">📊</div>
+          <div class="stat-number">Smart Visual Charts</div>
+          <div class="stat-label">Understand your spending with interactive pie, bar, and line charts.</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">⚙️</div>
+          <div class="stat-number">Simple & User-Friendly</div>
+          <div class="stat-label">No complexity — just clean and intuitive tracking.</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🔒</div>
+          <div class="stat-number">Secure & Private</div>
+          <div class="stat-label">Your data is stored safely and designed to stay confidential.</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-icon">🚀</div>
+          <div class="stat-number">Designed for Real-Life Budgeting</div>
+          <div class="stat-label">helping you track spending, stay organized, and build better financial habits with ease.</div>
+        </div>
+      </div>
+    </div>
+    <div class="stats-image animate-on-scroll fade-in-right">
+      <div class="stats-illustration">
+        <div class="stars">
+          <span class="star"></span>
+          <span class="star"></span>
+          <span class="star"></span>
+          <span class="star"></span>
+          <span class="star"></span>
+          <span class="star"></span>
+        </div>
+        <div class="rocket">
+          <div class="rocket-body">
+            <div class="rocket-window"></div>
+          </div>
+          <div class="rocket-fin"></div>
+          <div class="rocket-fire"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta"  id="contect">
+  <h2>Ready to take control of your finances?</h2>
+  <p>Take the first step toward smarter money management. Start tracking your expenses effortlessly and gain clearer control over your finances.</p>
+  <a href="#" class="btn">LET'S START</a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-content">
+    <div class="footer-section">
+      <h3 class="logo">CashFlow</h3>
+      <p>Visualize your expenses, monitor trends, and make confident financial decisions.</p>
+    </div>
+    <div class="footer-section">
+      <h3>Link</h3>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="login.html">Dashboard</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h3>Services</h3>
+      <ul>
+        <li><a href="#services">Expense Tracking</a></li>
+        <li><a href="#services">Visual Reports</a></li>
+        <li><a href="#services">Budget Management</a></li>
+        <li><a href="#services">Category-Based Spending</a></li>
+      </ul>
+    </div>
+    <div class="footer-section">
+      <h3>Contact</h3>
+      <p><a href="https://mail.google.com/mail/?view=cm&fs=1&to=cashflow.contact.team@gmail.com" target="_blank">
+        cashflow.contact.team@gmail.com
+      </a>
+      </p>
+      <p>+91 9340465592</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p> © 2025  <strong>CashFlow</strong> All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  function toggleAccordion(index) {
+      const items = document.querySelectorAll('.accordion-content');
+      const headers = document.querySelectorAll('.accordion-header span:last-child');
+
+      items[index].classList.toggle('active');
+      headers[index].textContent = items[index].classList.contains('active') ? '−' : '+';
+  }
+
+  // Hamburger Menu Toggle
+  function toggleMenu() {
+      const navMenu = document.getElementById('nav-menu');
+      const hamburger = document.querySelector('.hamburger');
+      navMenu.classList.toggle('active');
+      hamburger.classList.toggle('active');
+  }
+
+  function closeMenu() {
+      const navMenu = document.getElementById('nav-menu');
+      const hamburger = document.querySelector('.hamburger');
+      navMenu.classList.remove('active');
+      hamburger.classList.remove('active');
+  }
+
+  // Theme Toggle Function
+  function toggleTheme() {
+      const body = document.body;
+      const themeToggle = document.getElementById('theme-toggle');
+
+      body.classList.toggle('dark-theme');
+
+      // Save preference
+      if (body.classList.contains('dark-theme')) {
+          localStorage.setItem('theme', 'dark');
+      } else {
+          localStorage.setItem('theme', 'light');
+      }
+  }
+
+  // Load saved theme preference
+  function loadTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const body = document.body;
+      const themeToggle = document.getElementById('theme-toggle');
+
+      if (savedTheme === 'dark') {
+          body.classList.add('dark-theme');
+          themeToggle.checked = true;
+      }
+  }
+
+  // Scroll Animation Observer
+  const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+          if (entry.isIntersecting) {
+              entry.target.classList.add('animated');
+
+              // Special handling for service cards
+              if (entry.target.classList.contains('services-grid')) {
+                  const cards = entry.target.querySelectorAll('.service-card');
+                  cards.forEach(card => card.classList.add('animated'));
+              }
+
+              // Special handling for stats
+              if (entry.target.classList.contains('stats-grid')) {
+                  const statItems = entry.target.querySelectorAll('.stat-item');
+                  statItems.forEach(item => item.classList.add('animated'));
+              }
+          }
+      });
+  }, observerOptions);
+
+  // Observe elements on page load
+  window.addEventListener('DOMContentLoaded', function() {
+      // Load saved theme
+      loadTheme();
+
+      // Observe all animate-on-scroll elements
+      document.querySelectorAll('.animate-on-scroll').forEach(el => {
+          observer.observe(el);
+      });
+
+      // Observe services grid
+      const servicesGrid = document.querySelector('.services-grid');
+      if (servicesGrid) observer.observe(servicesGrid);
+
+      // Observe stats grid
+      const statsGrid = document.querySelector('.stats-grid');
+      if (statsGrid) observer.observe(statsGrid);
+
+      // Smooth scrolling for navigation links
+      document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+          anchor.addEventListener('click', function (e) {
+              e.preventDefault();
+              const target = document.querySelector(this.getAttribute('href'));
+              if (target) {
+                  target.scrollIntoView({
+                      behavior: 'smooth',
+                      block: 'start'
+                  });
+              }
+          });
+      });
+
+      // Header background on scroll
+      const header = document.querySelector('header');
+      window.addEventListener('scroll', () => {
+          if (window.scrollY > 100) {
+              if (document.body.classList.contains('dark-theme')) {
+                  header.style.background = 'rgba(45, 45, 45, 0.98)';
+              } else {
+                  header.style.background = 'rgba(255, 255, 255, 0.98)';
+              }
+              header.style.boxShadow = '0 2px 20px rgba(0,0,0,0.15)';
+          } else {
+              if (document.body.classList.contains('dark-theme')) {
+                  header.style.background = '#2d2d2d';
+              } else {
+                  header.style.background = '#fff';
+              }
+              header.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+          }
+      });
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(event) {
+          const navMenu = document.getElementById('nav-menu');
+          const hamburger = document.querySelector('.hamburger');
+          const nav = document.querySelector('nav');
+
+          if (!nav.contains(event.target) && navMenu.classList.contains('active')) {
+              closeMenu();
+          }
+      });
+  });
+</script>
+</body>
+</html>

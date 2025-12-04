@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CashFlow - Sign Up</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="container">
+  <h2> CashFlow</h2>
+  <p>Create your account</p>
+
+  <form id="signupForm">
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password (min 6 chars)" required minlength="6">
+    <input type="date" id="dob" required>
+    <button type="submit">Create Account</button>
+  </form>
+
+  <p>Already have an account? <a href="/login.html">Login</a></p>
+  <div id="message"></div>
+</div>
+
+<script>
+  document.getElementById('signupForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = '';
+      messageDiv.textContent = '';
+
+      try {
+          const res = await fetch('/api/auth/signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  name: document.getElementById('name').value,
+                  email: document.getElementById('email').value,
+                  username: document.getElementById('username').value,
+                  password: document.getElementById('password').value,
+                  dob: document.getElementById('dob').value
+              })
+          });
+
+          const text = await res.text();
+
+          if (res.ok) {
+              messageDiv.className = 'message success';
+              messageDiv.textContent = text;
+              setTimeout(() => window.location.href = '/login.html', 2000);
+          } else {
+              messageDiv.className = 'message error';
+              messageDiv.textContent = text;
+          }
+      } catch (err) {
+          messageDiv.className = 'message error';
+          messageDiv.textContent = 'Network error';
+      }
+  };
+</script>
+</body>
+</html>

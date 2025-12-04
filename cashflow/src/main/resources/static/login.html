@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CashFlow - Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .google-btn {
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            background: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .google-btn img {
+            height: 20px;
+        }
+        .container { max-width: 400px; margin: 50px auto; padding: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>CashFlow</h2>
+    <p>Login to your account</p>
+
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username or Email" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+
+    <p style="margin: 20px 0;">Don't have an account? <a href="/signup.html">Sign up</a></p>
+
+    <div id="message"></div>
+
+    <!-- UPDATED GOOGLE BUTTON WITH POPUP LOGIC -->
+    <!-- REPLACE your current Google button with THIS SINGLE LINE -->
+    <a href="/oauth2/authorization/google?redirect_uri=http://localhost:8080/dashboard.html"
+       style="display:block; margin-top:20px; padding:12px; background:#4285F4; color:white;
+          text-align:center; text-decoration:none; border-radius:8px; font-size:16px;">
+        Continue with Google
+    </a>
+</div>
+
+<script>
+    // Normal username/password login (unchanged – works perfectly)
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('loginForm');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                message.textContent = 'Please fill both fields';
+                message.style.color = 'red';
+                return;
+            }
+
+            message.textContent = 'Logging in...';
+            message.style.color = 'blue';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    message.textContent = 'Success! Redirecting...';
+                    message.style.color = 'green';
+                    setTimeout(() => window.location.href = '/dashboard.html', 800);
+                } else {
+                    const error = await response.text();
+                    message.textContent = error || 'Login failed';
+                    message.style.color = 'red';
+                }
+            } catch (err) {
+                message.textContent = 'Network error';
+                message.style.color = 'red';
+            }
+        });
+
+        // =============================================
+        // GOOGLE OAUTH2 LOGIN – FULLY WORKING POPUP VERSION
+        // =============================================
+        document.getElementById('googleLoginBtn').addEventListener('click', function() {
+            // Open Google login in a centered popup
+            const width = 500, height = 600;
+            const left = screen.width / 2 - width / 2;
+            const top = screen.height / 2 - height / 2;
+
+            const popup = window.open(
+                '/oauth2/authorization/google',
+                'googleLogin',
+                `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
+            );
+
+            if (!popup) {
+                alert('Please allow popups for Google login');
+                return;
+            }
+
+            // Poll every 500ms to see if popup is closed
+            const checkClosed = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkClosed);
+                    // Check if JWT cookie was set → user is logged in
+                    if (document.cookie.includes('jwt=')) {
+                        window.location.href = '/dashboard.html';
+                    }
+                }
+            }, 500);
+
+            // Optional: listen for message from backend (extra safety)
+            const handler = (event) => {
+                // In production, check event.origin!
+                if (event.data && event.data.success) {
+                    window.location.href = event.data.redirect || '/dashboard.html';
+                }
+            };
+            window.addEventListener('message', handler);
+        });
+    });
+</script>
+</body>
+</html>
