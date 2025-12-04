@@ -90,7 +90,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8080",
-                "http://localhost:5173" // support Vite/React frontend
+                "https://cashflow-4xky.onrender.com" // Render url
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
