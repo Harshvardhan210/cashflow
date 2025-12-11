@@ -27,33 +27,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-    // URLs that should bypass JWT checking
-    private static final List<String> EXCLUDED_URLS = List.of(
-            "/api/auth/login",
-            "/api/auth/signup",
-            "/oauth2",
+    // Exact public URLs
+    private static final List<String> EXCLUDED_PREFIXES = List.of(
+            "/api/auth/",
             "/oauth2/",
-            "/oauth2/authorization",
-            "/login",
+            "/login/oauth2/",
+            "/oauth2/authorization/",
             "/login.html",
-            "/js/",
+            "/signup.html",
             "/css/",
+            "/js/",
             "/images/"
     );
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-
         String path = request.getRequestURI();
 
-        return EXCLUDED_URLS.stream().anyMatch(path::startsWith)
-                || path.contains("oauth2")
-                || path.endsWith(".png")
-                || path.endsWith(".jpg")
-                || path.endsWith(".jpeg")
-                || path.endsWith(".css")
-                || path.endsWith(".js")
-                || path.endsWith(".ico");
+        // Skip static files automatically
+        if (path.endsWith(".js") || path.endsWith(".css") || path.endsWith(".png")
+                || path.endsWith(".jpg") || path.endsWith(".jpeg") || path.endsWith(".ico")) {
+            return true;
+        }
+
+        // Match prefixes
+        return EXCLUDED_PREFIXES.stream().anyMatch(path::startsWith);
     }
 
     @Override
@@ -69,7 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             try {
                 String username = jwtService.extractUsername(token);
 
-                // Authenticate only if not already authenticated
+                // Authenticate only if necessary
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -85,12 +83,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authToken);
 
                     } else {
-                        log.warn("Invalid JWT token detected");
+                        log.warn("Invalid JWT token");
                     }
                 }
 
             } catch (Exception e) {
-                log.warn("JWT validation failed: {}", e.getMessage());
+                log.warn("JWT error: {}", e.getMessage());
             }
         }
 
@@ -102,7 +100,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (cookies == null) return null;
 
         return Arrays.stream(cookies)
-                .filter(cookie -> cookie.getName().equals("jwt"))
+                .filter(c -> c.getName().equals("jwt"))
                 .map(Cookie::getValue)
                 .findFirst()
                 .orElse(null);
