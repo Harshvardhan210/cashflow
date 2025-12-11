@@ -1,12 +1,6 @@
 package com.cashflow.cashflow.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import io.jsonwebtoken.security.SignatureException;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,13 +27,13 @@ public class JwtService {
     public void init() {
         if (secret == null || secret.length() < 64) {
             throw new IllegalArgumentException(
-                    "JWT secret must be at least 64 characters long for HS512!"
+                    "JWT secret must be at least 64 characters long for HS512"
             );
         }
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    // ------------------ GENERATE TOKEN ------------------
+    // ---------------------- GENERATE TOKEN ----------------------
     public String generateToken(String username, Long userId) {
 
         Map<String, Object> claims = new HashMap<>();
@@ -47,61 +41,51 @@ public class JwtService {
         claims.put("role", "USER");
 
         return Jwts.builder()
-                .claims(claims)
-                .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .setClaims(claims)
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(signingKey, SignatureAlgorithm.HS512)
                 .compact();
     }
 
-    // ------------------ EXTRACT USERNAME ------------------
+    // ---------------------- USERNAME FROM TOKEN ----------------------
     public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+        Claims claims = safeExtractClaims(token);
+        return claims != null ? claims.getSubject() : null;
     }
 
-    // ------------------ CHECK EXPIRATION ------------------
+    // ---------------------- CHECK EXPIRATION ----------------------
     public boolean isTokenExpired(String token) {
-        return extractAllClaims(token).getExpiration().before(new Date());
+        Claims claims = safeExtractClaims(token);
+        return claims == null || claims.getExpiration().before(new Date());
     }
 
-    // ------------------ VALIDATE JWT ------------------
-    public boolean validateToken(String token) {
+    // ---------------------- VALIDATE TOKEN ----------------------
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        String username = extractUsername(token);
+        return username != null &&
+               username.equals(userDetails.getUsername()) &&
+               !isTokenExpired(token);
+    }
+
+    // ---------------------- SAFE CLAIMS PARSER ----------------------
+    private Claims safeExtractClaims(String token) {
         try {
-            extractAllClaims(token);
-            return true;
+            return Jwts.parserBuilder()
+                    .setSigningKey(signingKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
         } catch (ExpiredJwtException e) {
             System.out.println("JWT expired: " + e.getMessage());
-
-        } catch (UnsupportedJwtException e) {
-            System.out.println("JWT unsupported: " + e.getMessage());
-
-        } catch (MalformedJwtException e) {
-            System.out.println("Invalid JWT: " + e.getMessage());
-
-        } catch (SignatureException e) {
-            System.out.println("Invalid signature: " + e.getMessage());
-
-        } catch (Exception e) {
+        } catch (JwtException e) {
             System.out.println("JWT validation error: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Unexpected JWT error: " + e.getMessage());
         }
 
-        return false;
-    }
-
-    // ------------------ USER VALIDATION ------------------
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-    }
-
-    // ------------------ INTERNAL CLAIMS PARSER ------------------
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(signingKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        return null;
     }
 }
