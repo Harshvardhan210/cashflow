@@ -57,13 +57,14 @@ public class AuthController {
             String jwt = jwtService.generateToken(user.getUsername(), user.getId());
 
             // ---- FIX: CREATE COOKIE MANUALLY ----
-            String cookieValue =
-                    "jwt=" + jwt +
-                            "; Path=/" +
-                            "; Max-Age=" + (24 * 60 * 60) + // 1 day
-                            "; HttpOnly" +
-                            "; SameSite=None" +
-                            "; Secure=" + secure;
+          String cookieValue =
+        "jwt=" + jwt +
+        "; Path=/" +
+        "; Max-Age=" + (24 * 60 * 60) +
+        "; HttpOnly" +
+        "; SameSite=None" +
+        (secure ? "; Secure" : "");
+
 
             response.setHeader("Set-Cookie", cookieValue);
 
