@@ -39,7 +39,12 @@ public class ExpenseService {
         expense.setAmount(request.getAmount());
 
         // Ensure valid date
-        expense.setDate(request.getDate());
+      LocalDate date = request.getDate();
+if (date == null) {
+    date = LocalDate.now();
+}
+expense.setDate(date);
+
 
 
         expense.setUser(user);
