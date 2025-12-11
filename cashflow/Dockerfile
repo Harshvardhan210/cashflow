@@ -1,17 +1,27 @@
-# Stage 1: Build the JAR using Maven
+# ------------ Stage 1: Build JAR -------------
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
-COPY . .
+
+# Copy only pom.xml first (speed up dependency caching)
+COPY pom.xml .
+RUN mvn dependency:go-offline
+
+# Now copy source code
+COPY src ./src
+
+# Build jar
 RUN mvn clean package -DskipTests
 
-# Stage 2: Create small final image
+
+# ------------ Stage 2: Run App ---------------
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+
+# Copy final jar
 COPY --from=build /app/target/*.jar app.jar
 
-# Important for Render
+# Render exposes the port dynamically, use $PORT
 EXPOSE 8080
-ENV PORT=8080
-ENV JAVA_OPTS="-Xms256m -Xmx512m"
+ENV JAVA_OPTS=""
 
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
