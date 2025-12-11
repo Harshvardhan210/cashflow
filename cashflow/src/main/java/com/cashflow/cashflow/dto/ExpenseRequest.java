@@ -9,5 +9,6 @@ import java.time.LocalDateTime;
 public class ExpenseRequest {
     private String title;
     private Double amount;
-    private LocalDate date;
+    private String date;   // safer for JSON frontends
 }
+
