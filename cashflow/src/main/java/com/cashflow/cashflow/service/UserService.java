@@ -16,27 +16,25 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public User registerUser(SignupRequest request) {
-        if (userRepository.existsByUsername(request.username())) {
-            throw new RuntimeException("Username already taken");
-        }
-        if (userRepository.existsByEmail(request.email())) {
-            throw new RuntimeException("Email already registered");
-        }
-
-        User user = new User();
-        user.setName(request.name());
-        user.setEmail(request.email());
-        user.setUsername(request.username());
-        user.setPassword(passwordEncoder.encode(request.password()));
-        user.setDob(request.dob());
-
-        return userRepository.save(user);
+   public User registerUser(SignupRequest request) {
+    if (userRepository.existsByUsername(request.username())) {
+        throw new RuntimeException("Username already taken");
+    }
+    if (userRepository.existsByEmail(request.email())) {
+        throw new RuntimeException("Email already registered");
     }
 
-    // Helper to load User entity (not UserDetails) — used in login
-    public User getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
+    User user = new User();
+    user.setName(request.name());
+    user.setEmail(request.email());
+    user.setUsername(request.username());
+    user.setPassword(passwordEncoder.encode(request.password()));
+    user.setDob(request.dob());
+
+    // ⭐ DEFAULT VALUES (required!)
+    user.setBudget(0.0);
+    user.setCurrency("INR");
+    user.setSymbol("₹");
+
+    return userRepository.save(user);
 }
