@@ -13,5 +13,5 @@ public record SignupRequest(
         @NotBlank @Email String email,
         @NotBlank @Size(min = 4) String username,
         @NotBlank @Size(min = 6) String password,
-        LocalDate dob
+        String dob
 ) {}
