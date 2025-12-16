@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +31,8 @@ public class JwtService {
                     "JWT secret must be at least 64 characters long for HS512"
             );
         }
-        this.signingKey = Keys.hmacShaKeyFor(secret.getBytes());
+        this.signingKey =
+                Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     // ---------------------- GENERATE TOKEN ----------------------
@@ -41,27 +43,34 @@ public class JwtService {
         claims.put("role", "USER");
 
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(signingKey, SignatureAlgorithm.HS512)
+                .claims(claims)
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(signingKey, Jwts.SIG.HS512)
                 .compact();
     }
 
-    // ---------------------- USERNAME FROM TOKEN ----------------------
+    // ---------------------- EXTRACT USERNAME ----------------------
     public String extractUsername(String token) {
-        Claims claims = safeExtractClaims(token);
-        return claims != null ? claims.getSubject() : null;
+        try {
+            return parseClaims(token).getSubject();
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    // ---------------------- CHECK EXPIRATION ----------------------
-    public boolean isTokenExpired(String token) {
-        Claims claims = safeExtractClaims(token);
-        return claims == null || claims.getExpiration().before(new Date());
+    // ---------------------- VALIDATE TOKEN (USED IN CONTROLLER) ----------------------
+    public boolean validateToken(String token) {
+        try {
+            parseClaims(token);
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
-    // ---------------------- VALIDATE TOKEN ----------------------
+    // ---------------------- FULL VALIDATION ----------------------
     public boolean isTokenValid(String token, UserDetails userDetails) {
         String username = extractUsername(token);
         return username != null &&
@@ -69,23 +78,19 @@ public class JwtService {
                !isTokenExpired(token);
     }
 
-    // ---------------------- SAFE CLAIMS PARSER ----------------------
-    private Claims safeExtractClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+    // ---------------------- CHECK EXPIRATION ----------------------
+    private boolean isTokenExpired(String token) {
+        return parseClaims(token)
+                .getExpiration()
+                .before(new Date());
+    }
 
-        } catch (ExpiredJwtException e) {
-            System.out.println("JWT expired: " + e.getMessage());
-        } catch (JwtException e) {
-            System.out.println("JWT validation error: " + e.getMessage());
-        } catch (Exception e) {
-            System.out.println("Unexpected JWT error: " + e.getMessage());
-        }
-
-        return null;
+    // ---------------------- CLAIMS PARSER (NEW API) ----------------------
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(signingKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
